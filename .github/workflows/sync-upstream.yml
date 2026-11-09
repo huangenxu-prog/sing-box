@@ -1,0 +1,32 @@
+name: Sync upstream sing-box
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-upstream-testing
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          ref: testing
+          fetch-depth: 0
+
+      - name: Fast-forward from SagerNet
+        run: |
+          git remote add upstream https://github.com/SagerNet/sing-box.git
+          git fetch upstream testing
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git merge --ff-only upstream/testing
+          git push origin HEAD:testing
